@@ -19,47 +19,47 @@ class RecommenderManager(models.Manager):
     MIN_RECOMMENDATION_VALUE = 0
     MIN_SIMILARITY_VALUE = 0.25
     
-    def get_best_items_for_user(self, user, user_list, item_list):
+    def get_best_items_for_user(self, user, user_list, item_list, min_value=MIN_RECOMMENDATION_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
 
         recs = self._get_usb_recommendations(user.id, user_item_matrix)
         recs.sort(reverse=True)
         
         ctype = ContentType.objects.get_for_model(item_list[0])
-        items = [(value,ctype.get_object_for_this_type(id = rec)) for value,rec in recs if value>self.MIN_RECOMMENDATION_VALUE]
+        items = [(value,ctype.get_object_for_this_type(id = rec)) for value,rec in recs if value>min_value]
         return items
         
-    def get_similar_users(self, user, user_list, item_list):
+    def get_similar_users(self, user, user_list, item_list, min_value=MIN_SIMILARITY_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
         sim_list = []
         for other in user_list:
             if user==other:continue
             sim=self._distance_matrix_p1_p2(user_item_matrix,user.id,other.id) #returns a 0..1 value
-            if sim>self.MIN_SIMILARITY_VALUE:
+            if sim>min_value:
                 sim_list.append((sim,other))
             
         sim_list.sort(reverse=True)
         return sim_list
 
-    def get_best_users_for_item(self, item, user_list, item_list):
+    def get_best_users_for_item(self, item, user_list, item_list, min_value=MIN_RECOMMENDATION_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
         item_user_matrix = self.rotate_matrix(user_item_matrix)
 
         recs = self._get_usb_recommendations(item.id, item_user_matrix)
         recs.sort(reverse=True)
 
-        users = [(value,User.objects.get(id = rec)) for value,rec in recs if value>self.MIN_RECOMMENDATION_VALUE]
+        users = [(value,User.objects.get(id = rec)) for value,rec in recs if value>min_value]
         
         return users
     
-    def get_similar_items(self, item, user_list, item_list):
+    def get_similar_items(self, item, user_list, item_list, min_value=MIN_SIMILARITY_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
         item_user_matrix = self.rotate_matrix(user_item_matrix)
         sim_list = []
         for other in item_list:
             if item==other:continue
             sim=self._distance_matrix_p1_p2(item_user_matrix,item.id,other.id) #returns a 0..1 value
-            if sim>self.MIN_SIMILARITY_VALUE:
+            if sim>min_value:
                 sim_list.append((sim,other))
             
         sim_list.sort(reverse=True)
