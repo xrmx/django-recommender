@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from recommender.models import Recommender, TestItem
 from voting.models import Vote
-
+from tagging.models import Tag
 
 class RecommenderManagerTest(TestCase):
     
@@ -16,7 +16,7 @@ class RecommenderManagerTest(TestCase):
             TestItem.objects.create(name=movie)
         for user in users:
             User.objects.create_user(username=user, email=user+'@mockmail.com', password=user)
-
+        
         def _rot(list):
             while True:
                 for d in list: yield d
@@ -27,6 +27,34 @@ class RecommenderManagerTest(TestCase):
         for user in users:
             for movie in movies:
                 Vote.objects.record_vote(movie, user, votes.next())
+
+        movie_tags = ['classic','b&w','romantic','thriller',
+                'action','superheros','adventures','fx',
+                'science-fiction','fx','classic','thriller',
+                'gangsters','action','comedy','thriller',
+                'action', 'adventures', 'thriller', 'classic',
+                'comedy','teenagers','musical','university',]
+        user_tags = ['action','adventures','thriller',
+                     'romatic','classic','b&w',
+                     'romantic','adventures','western',
+                     'thriller','gangsters','romantic',
+                     'action','fx','gore',
+                     'comedy','classic','b&w',]
+        i = 0
+        for movie in movies:
+            while True:
+                tag = movie_tags[i]
+                Tag.objects.add_tag(movie, tag)
+                i+=1   
+                if i%4==0: break
+
+        i = 0
+        for user in users:
+            while True:
+                tag = user_tags[i]
+                Tag.objects.add_tag(user, tag)
+                i+=1   
+                if i%3==0: break
                 
     def tearDown(self):
         pass
@@ -97,3 +125,22 @@ class RecommenderManagerTest(TestCase):
         self.assertEqual(len(sim_movies),1)
         self.assertEqual(sim_movies[0][1].id,3)
                
+    def test_get_content_based_recs(self):
+        users = User.objects.all()
+        movies = TestItem.objects.all()
+
+        movie_tags = {}
+        for movie in movies:
+            movie_tags[movie] = Tag.objects.get_for_object(movie)
+        
+        for user in users:
+            user_tags = Tag.objects.get_for_object(user)
+            sim_movies = Recommender.objects.get_content_based_recs(user_tags, movie_tags)
+            print "Best movies based on tags for %s: %s " % (user, sim_movies)
+
+        user = User.objects.get(id=4)
+        user_tags = Tag.objects.get_for_object(user)
+        movies = Recommender.objects.get_content_based_recs(user_tags, movie_tags)
+        self.assertEqual(len(movies),2)
+        self.assertEqual(movies[0][1].id,1)
+        

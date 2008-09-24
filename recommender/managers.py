@@ -18,6 +18,7 @@ class RecommenderManager(models.Manager):
 
     MIN_RECOMMENDATION_VALUE = 0
     MIN_SIMILARITY_VALUE = 0.25
+    MIN_CONTENT_BASED_RECOMMENDATION_VALUE = 0.25
     
     def get_best_items_for_user(self, user, user_list, item_list, min_value=MIN_RECOMMENDATION_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
@@ -102,6 +103,47 @@ class RecommenderManager(models.Manager):
         
         return (c+1.0)/2.0
 
+    def tanamoto2(self,v1,v2):
+        ''' >>> eng=RecommenderManager()
+            >>> v1=['a','b','c']
+            >>> v2=['c','a','b']
+            >>> eng.tanamoto2(v1,v2)
+            1.0
+            >>> v2=['e','f','g']
+            >>> eng.tanamoto2(v1,v2)
+            0.0
+            >>> v2=['c','f','k','a']
+            >>> eng.tanamoto2(v1,v2)
+            0.40000000000000002
+            >>> v2=['x','f','k','a']
+            >>> eng.tanamoto2(v1,v2)
+            0.16666666666666666
+            >>> v2=['c','b','k','a']
+            >>> eng.tanamoto2(v1,v2)
+            0.75
+            >>> v2=['b','g','a','t','c']
+            >>> v1=['x','y','z','t','v']
+            >>> eng.tanamoto2(v1,v2)
+            0.1111111111111111
+            >>> v1=['a','b']
+            >>> eng.tanamoto2(v1,v2)
+            0.40000000000000002
+            >>> v1=['a','b','x','y','z']
+            >>> eng.tanamoto2(v1,v2)
+            0.25
+        '''
+        c1,c2,shr=0,0,0
+        c1=len(v1)
+        c2=len(v2)
+        shr=0
+        if c1==0 or c2==0: return 0.0
+        for it in v1:
+            if it in v2: shr+=1
+
+        if c1+c2-shr==0: return 0.0
+        return (float(shr)/(c1+c2-shr))
+
+
     def _distance_matrix_p1_p2(self, prefs, p1, p2):
         ''' >>> eng=RecommenderManager()
             >>> prefs={}
@@ -169,4 +211,23 @@ class RecommenderManager(models.Manager):
         rankings=[(total/simSums[item],item) for item,total in totals.items( )]
         return rankings
     
-    
+# Content Based Recommendations
+    def get_content_based_recs(self,user_tags,item_tag_matrix, min_value=MIN_CONTENT_BASED_RECOMMENDATION_VALUE):
+        ''' For a given user tags and a dicc of item tags, returns the distances between the user and the items
+            >>> eng=RecommenderManager()
+            >>> user_tags=['a','b','c','d']
+            >>> tag_matrix={}
+            >>> tag_matrix['it1']=['z','a','c']
+            >>> tag_matrix['it2']=['b','c']
+            >>> tag_matrix['it3']=['a','r','t','v']
+            >>> eng.get_content_based_recs(user_tags,tag_matrix)
+            [(7.5, 'it1'), (10.0, 'it2'), (5.0, 'it3')]
+        '''
+        recs = []
+        for item,item_tags in item_tag_matrix.items():
+            sim = self.tanamoto2(item_tags, user_tags)
+            if sim>=min_value:
+                recs.append((sim, item))
+                
+        return recs
+
