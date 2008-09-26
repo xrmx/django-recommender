@@ -9,10 +9,10 @@ from os.path import abspath, dirname, join
 import sys
 from site import addsitedir
 
-path = addsitedir(abspath(join(dirname(__file__), 'recommender/site-packages')), set())
+path = addsitedir(abspath(join(dirname(__file__), 'site-packages')), set())
 if path: sys.path = list(path) + sys.path
 
-import statistics
+import stats
 
 class RecommenderManager(models.Manager):
 
@@ -97,11 +97,10 @@ class RecommenderManager(models.Manager):
            0.41666666666666669
         '''
         try:
-            c= statistics.correlation(v1,v2)        
-        except statistics.error:
-            c= -1
-        
-        return (c+1.0)/2.0
+            pc= stats.pearsonr(v1,v2)[0]        
+        except :
+            pc= -1
+        return (pc+1.0)/2.0
 
     def tanamoto2(self,v1,v2):
         ''' >>> eng=RecommenderManager()

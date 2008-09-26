@@ -80,11 +80,11 @@ class RecommenderManagerTest(TestCase):
             recs = Recommender.objects.get_best_items_for_user(user, users, movies)
             print "Best Items found for %s: %s " % (user, recs)
 
-        user = User.objects.get(id=4)
+        user = User.objects.get(id=6)
         users = Recommender.objects.get_best_items_for_user(user, users, movies)
         self.assertEqual(len(users),2)
-        self.assertEqual(users[0][1].id,5)
-        self.assertEqual(users[1][1].id,4)
+        self.assertEqual(users[0][1].id,6)
+        self.assertEqual(users[1][1].id,1)
 
     def test_get_similar_users(self):
         users = User.objects.all()
@@ -94,10 +94,10 @@ class RecommenderManagerTest(TestCase):
             sim_users = Recommender.objects.get_similar_users(user, users, movies)
             print "Similar users for %s: %s " % (user, sim_users)
 
-        user = User.objects.get(id=4)
+        user = User.objects.get(id=1)
         users = Recommender.objects.get_similar_users(user, users, movies)
         self.assertEqual(len(users),1)
-        self.assertEqual(users[0][1].id,5)
+        self.assertEqual(users[0][1].id,3)
 
     def test_get_best_users_for_item(self):
         users = User.objects.all()
@@ -107,10 +107,10 @@ class RecommenderManagerTest(TestCase):
             recs = Recommender.objects.get_best_users_for_item(movie, users, movies)
             print "Best Users found for %s: %s " % (movie, recs)
 
-        movie = TestItem.objects.get(id=1)
+        movie = TestItem.objects.get(id=5)
         users = Recommender.objects.get_similar_items(movie, users, movies)
         self.assertEqual(len(users),1)
-        self.assertEqual(users[0][1].id,3)
+        self.assertEqual(users[0][1].id,4)
 
     def test_get_similar_items(self):
         users = User.objects.all()
@@ -120,10 +120,10 @@ class RecommenderManagerTest(TestCase):
             sim_movies = Recommender.objects.get_similar_items(movie, users, movies)
             print "Similar movies for %s: %s " % (movie, sim_movies)
         
-        movie = TestItem.objects.get(id=1)
+        movie = TestItem.objects.get(id=4)
         sim_movies = Recommender.objects.get_similar_items(movie, users, movies)
         self.assertEqual(len(sim_movies),1)
-        self.assertEqual(sim_movies[0][1].id,3)
+        self.assertEqual(sim_movies[0][1].id,5)
                
     def test_get_content_based_recs(self):
         users = User.objects.all()
