@@ -129,18 +129,12 @@ class RecommenderManagerTest(TestCase):
         users = User.objects.all()
         movies = TestItem.objects.all()
 
-        movie_tags = {}
-        for movie in movies:
-            movie_tags[movie] = Tag.objects.get_for_object(movie)
-        
         for user in users:
-            user_tags = Tag.objects.get_for_object(user)
-            sim_movies = Recommender.objects.get_content_based_recs(user_tags, movie_tags)
+            sim_movies = Recommender.objects.get_content_based_recs(user, movies)
             print "Best movies based on tags for %s: %s " % (user, sim_movies)
 
         user = User.objects.get(id=4)
-        user_tags = Tag.objects.get_for_object(user)
-        movies = Recommender.objects.get_content_based_recs(user_tags, movie_tags)
+        movies = Recommender.objects.get_content_based_recs(user, movies)
         self.assertEqual(len(movies),2)
         self.assertEqual(movies[0][1].id,1)
         

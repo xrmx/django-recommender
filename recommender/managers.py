@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 
 from voting.models import Vote
+from tagging.models import Tag
 
 from os.path import abspath, dirname, join
 import sys
@@ -211,7 +212,7 @@ class RecommenderManager(models.Manager):
         return rankings
     
 # Content Based Recommendations
-    def get_content_based_recs(self,user_tags,item_tag_matrix, min_value=MIN_CONTENT_BASED_RECOMMENDATION_VALUE):
+    def get_content_based_recs(self, user, tagged_items, min_value=MIN_CONTENT_BASED_RECOMMENDATION_VALUE):
         ''' For a given user tags and a dicc of item tags, returns the distances between the user and the items
             >>> eng=RecommenderManager()
             >>> user_tags=['a','b','c','d']
@@ -222,6 +223,13 @@ class RecommenderManager(models.Manager):
             >>> eng.get_content_based_recs(user_tags,tag_matrix)
             [(7.5, 'it1'), (10.0, 'it2'), (5.0, 'it3')]
         '''
+
+        item_tag_matrix = {}
+        for item in tagged_items:
+            item_tag_matrix[item] = Tag.objects.get_for_object(item)
+        
+        user_tags = Tag.objects.get_for_object(user)
+        
         recs = []
         for item,item_tags in item_tag_matrix.items():
             sim = self.tanamoto2(item_tags, user_tags)
