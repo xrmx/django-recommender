@@ -28,7 +28,7 @@ class RecommenderManager(models.Manager):
         sim_list = []
         for other in user_list:
             if user==other:continue
-            sim=utils.distance_matrix_p1_p2(user_item_matrix,user.id,other.id) #returns a 0..1 value
+            sim=utils.distance_matrix_p1_p2(user_item_matrix[user.id],user_item_matrix[other.id]) #returns a 0..1 value
             if sim>min_value:
                 sim_list.append((sim,other))
             
@@ -52,7 +52,7 @@ class RecommenderManager(models.Manager):
         sim_list = []
         for other in item_list:
             if item==other:continue
-            sim=utils.distance_matrix_p1_p2(item_user_matrix,item.id,other.id) #returns a 0..1 value
+            sim=utils.distance_matrix_p1_p2(item_user_matrix[item.id],item_user_matrix[other.id]) #returns a 0..1 value
             if sim>min_value:
                 sim_list.append((sim,other))
             
@@ -71,8 +71,8 @@ class RecommenderManager(models.Manager):
         rotated_matrix = {}
         for user in matrix:
             for item in matrix[user]:
-              rotated_matrix.setdefault(item,{})
-              rotated_matrix[item][user]=matrix[user][item]
+                rotated_matrix.setdefault(item,{})
+                rotated_matrix[item][user]=matrix[user][item]
         return rotated_matrix
         
 # Content Based Recommendations
@@ -102,3 +102,12 @@ class RecommenderManager(models.Manager):
                 
         return recs
 
+# Clustering methods
+    def cluster_users(self, users, items, cluster_count=2):
+        user_item_matrix = self.create_matrix(users, items)
+        return utils.kcluster(user_item_matrix, items, cluster_count)
+
+    def cluster_items(self, users, items, cluster_count=2):
+        user_item_matrix = self.create_matrix(users, items)
+        item_user_matrix = self.rotate_matrix(user_item_matrix)
+        return utils.kcluster(item_user_matrix, users, cluster_count)

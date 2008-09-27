@@ -144,4 +144,13 @@ class RecommenderManagerTest(TestCase):
         movies = Recommender.objects.get_content_based_recs(user, movies)
         self.assertEqual(len(movies),2)
         self.assertEqual(movies[0][1].id,1)
-        
+
+    def test_kcluster(self):
+        users = User.objects.all()
+        movies = TestItem.objects.all()
+
+        user_cluster = Recommender.objects.cluster_users(users, movies)
+        print "User Clusters %r" % user_cluster
+
+        item_cluster = Recommender.objects.cluster_items(users, movies)
+        print "Item Clusters %r" % item_cluster
