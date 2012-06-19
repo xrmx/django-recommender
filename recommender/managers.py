@@ -3,16 +3,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 
 import utils
-
-from voting.models import Vote
-from tagging.models import Tag
+from default import backend
 
 class RecommenderManager(models.Manager):
 
     MIN_RECOMMENDATION_VALUE = 0
     MIN_SIMILARITY_VALUE = 0.25
     MIN_CONTENT_BASED_RECOMMENDATION_VALUE = 0.25
-    
+
     def get_best_items_for_user(self, user, user_list, item_list, min_value=MIN_RECOMMENDATION_VALUE):
         user_item_matrix = self.create_matrix(user_list, item_list)
 
@@ -60,13 +58,8 @@ class RecommenderManager(models.Manager):
         return sim_list
         
     def create_matrix(self, users, items):
-        user_item_matrix = {}
-        for user in users:
-            votes_for_user = Vote.objects.get_for_user_in_bulk(items, user)
-            user_item_matrix[user.id] = votes_for_user
-        
-        return user_item_matrix
-    
+        return backend.create_user_matrix(users, items)
+
     def rotate_matrix(self, matrix):
         rotated_matrix = {}
         for user in matrix:
@@ -74,7 +67,7 @@ class RecommenderManager(models.Manager):
                 rotated_matrix.setdefault(item,{})
                 rotated_matrix[item][user]=matrix[user][item]
         return rotated_matrix
-        
+
 # Content Based Recommendations
     def get_content_based_recs(self, user, tagged_items, min_value=MIN_CONTENT_BASED_RECOMMENDATION_VALUE):
         ''' For a given user tags and a dicc of item tags, returns the distances between the user and the items
@@ -87,12 +80,8 @@ class RecommenderManager(models.Manager):
             >>> eng.get_content_based_recs(user_tags,tag_matrix)
             [(7.5, 'it1'), (10.0, 'it2'), (5.0, 'it3')]
         '''
-
-        item_tag_matrix = {}
-        for item in tagged_items:
-            item_tag_matrix[item] = Tag.objects.get_for_object(item)
-        
-        user_tags = Tag.objects.get_for_object(user)
+        item_tag_matrix = backend.create_item_tag_matrix(user, tagged_items)
+        user_tags = backend.get_user_tags(user)
         
         recs = []
         for item,item_tags in item_tag_matrix.items():
