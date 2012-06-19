@@ -2,7 +2,8 @@ from itertools import imap
 
 # http://stackoverflow.com/questions/3949226/calculating-pearson-correlation-and-significance-in-python
 def pearsonr(x, y):
-    # Assume len(x) == len(y)
+    if len(x) != len(y):
+        raise ValueError, 'Input values not paired in pearsonr.  Aborting.'
     n = len(x)
     sum_x = float(sum(x))
     sum_y = float(sum(y))
@@ -12,7 +13,7 @@ def pearsonr(x, y):
     num = psum - (sum_x * sum_y/n)
     den = pow((sum_x_sq - pow(sum_x, 2) / n) * (sum_y_sq - pow(sum_y, 2) / n), 0.5)
     if den == 0:
-        return 0
+        return -1
     return num / den
 
 #Return [0..1] where -1 is not correlated, and 1 is fully correlated
