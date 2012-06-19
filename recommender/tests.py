@@ -1,9 +1,17 @@
+from django.db import models
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from recommender.models import Recommender, TestItem
+from recommender.models import Recommender
 from voting.models import Vote
 from tagging.models import Tag
+
+class TestItem(models.Model):
+
+    name = models.CharField(max_length=200)
+
+    def __unicode__(self):
+        return '%s' % self.name
 
 class RecommenderManagerTest(TestCase):
     

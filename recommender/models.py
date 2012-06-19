@@ -8,11 +8,3 @@ from recommender.managers import RecommenderManager
 class Recommender(models.Model):
 
     objects = RecommenderManager()
-
-#Test class only for testing. Delete for real projects.
-class TestItem(models.Model):
-
-    name = models.CharField(max_length=200)
-    
-    def __unicode__(self):
-        return '%s' % self.name
