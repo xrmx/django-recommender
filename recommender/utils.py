@@ -1,11 +1,19 @@
-from os.path import abspath, dirname, join
-import sys
-from site import addsitedir
+from itertools import imap
 
-path = addsitedir(abspath(join(dirname(__file__), 'site-packages')), set())
-if path: sys.path = list(path) + sys.path
-
-import stats
+# http://stackoverflow.com/questions/3949226/calculating-pearson-correlation-and-significance-in-python
+def pearsonr(x, y):
+    # Assume len(x) == len(y)
+    n = len(x)
+    sum_x = float(sum(x))
+    sum_y = float(sum(y))
+    sum_x_sq = sum(map(lambda x: pow(x, 2), x))
+    sum_y_sq = sum(map(lambda x: pow(x, 2), y))
+    psum = sum(imap(lambda x, y: x * y, x, y))
+    num = psum - (sum_x * sum_y/n)
+    den = pow((sum_x_sq - pow(sum_x, 2) / n) * (sum_y_sq - pow(sum_y, 2) / n), 0.5)
+    if den == 0:
+        return 0
+    return num / den
 
 #Return [0..1] where -1 is not correlated, and 1 is fully correlated
 def pearson_correlation(v1,v2):
@@ -18,12 +26,12 @@ def pearson_correlation(v1,v2):
        1.0
        >>> v2=[0,10,0,10,0]
        >>> pearson_correlation(v1,v2)
-       0.41666666666666669
+       0.4166666666666667
     '''
     try:
-        pc= stats.pearsonr(v1,v2)[0]        
-    except :
-        pc= -1
+        pc = pearsonr(v1,v2)
+    except:
+        pc = -1
     return (pc+1.0)/2.0
 
 def tanamoto2(v1,v2):
