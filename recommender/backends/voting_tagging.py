@@ -20,3 +20,22 @@ class Backend:
     def get_user_tags(self, user):
         return Tag.objects.get_for_object(user)
 
+    # TESTS
+    def add_vote_for_user(self, movie, user, vote):
+        Vote.objects.record_vote(movie, user, vote)
+
+    def add_tag(self, model, tag):
+        Tag.objects.add_tag(model, tag)
+
+    def print_matrix(self, users, items):
+        item_names = [str(item)[0:7] for item in items]
+        print '\t' + '\t'.join(item_names)
+        for other in users:
+            votes_for_user = Vote.objects.get_for_user_in_bulk(items, other)
+            votes = []
+            for item in items:
+                if item.id in votes_for_user:
+                    votes.append('%d' % votes_for_user[item.id].vote)
+                else:
+                    votes.append(' ')
+            print str(other)[0:7] +'\t'+ '\t'.join(votes)

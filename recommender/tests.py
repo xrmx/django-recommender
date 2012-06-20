@@ -3,8 +3,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 
 from recommender.models import Recommender
-from voting.models import Vote
-from tagging.models import Tag
+from recommender.default import backend
 
 class TestItem(models.Model):
 
@@ -34,7 +33,7 @@ class RecommenderManagerTest(TestCase):
         movies = TestItem.objects.all()
         for user in users:
             for movie in movies:
-                Vote.objects.record_vote(movie, user, votes.next())
+                backend.add_vote_for_user(movie, user, votes.next())
 
         movie_tags = ['classic','b&w','romantic','thriller',
                 'action','superheros','adventures','fx',
@@ -56,7 +55,7 @@ class RecommenderManagerTest(TestCase):
         for movie in movies:
             while True:
                 tag = movie_tags[i]
-                Tag.objects.add_tag(movie, tag)
+                backend.add_tag(movie, tag)
                 i+=1   
                 if i%4==0: break
 
@@ -64,7 +63,7 @@ class RecommenderManagerTest(TestCase):
         for user in users:
             while True:
                 tag = user_tags[i]
-                Tag.objects.add_tag(user, tag)
+                backend.add_tag(user, tag)
                 i+=1   
                 if i%3==0: break
                 
@@ -72,17 +71,7 @@ class RecommenderManagerTest(TestCase):
         pass
     
     def _print_matrix(self, users, items):
-        item_names = [str(item)[0:7] for item in items]
-        print '\t' + '\t'.join(item_names)
-        for other in users:
-            votes_for_user = Vote.objects.get_for_user_in_bulk(items, other)
-            votes = []
-            for item in items:
-                if item.id in votes_for_user:
-                    votes.append('%d' % votes_for_user[item.id].vote)
-                else:
-                    votes.append(' ')
-            print str(other)[0:7] +'\t'+ '\t'.join(votes)
+        backend.print_matrix(users, items)
 
     def test_get_best_items_for_user(self):
         users = User.objects.all()
